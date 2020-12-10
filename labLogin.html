@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LabWorkerLogin</title>
+</head>
+<style>
+    img{
+        width:800px;
+    }
+    p{
+      font-size: 80px;
+      margin-top:0px;
+      height:20px;
+      float:right;
+      text-align:right;
+
+    }
+    form{
+        position:absolute;left:800px;top:300px;
+    }
+   
+ 
+   
+
+</style>
+<body>
+    <p>lab faculty login</p>
+    <div>
+        <form action="/labLogin" method="POST">
+            <label for="Lab ID" >Lab   ID</label> 
+            <input type="text" name="username" style="position:absolute;left:78px ;"/> <br>
+            <label for="password">password</label> 
+            <input type="password" name="password" /> <br>
+            <input type="submit" value="login" >
+        </form>
+    </div>
+    
+</body>
+</html>
