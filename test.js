@@ -15,7 +15,7 @@ var con = mysql.createConnection({
     port: 3306,
     user: "root",
     password: "LZMfall2020cse316",
-    database: "mydb"
+    database: "employeecovidtestingdb"
 });
 
 //
@@ -31,24 +31,26 @@ driver.get("/employeeLogin",(req,res)=>{
 driver.get("/Labhome",(req,res)=>{
     res.sendFile(__dirname + '/Labhome.html')
 });
+driver.get("/facultyHome",(req,res)=>{
+    res.sendFile(__dirname + '/facultyHome.html')
+});
 driver.post("/employeeLogin",(req,res)=>{
     console.log(req.body)
     console.log(req.body.password)
     var body=req.body
     //2
-    con.connect(function(err) {
-        if (err) throw err;
-        con.query("SELECT * FROM employee", function (err, result, fields) {
-        if (err) throw err;
-        if(checkexistEmail(body,result)) {
-            //add the respose page here
-            res.redirect('/facultyHome');
-        }
-            else{
-                res.redirect('/err');
-            }
-    
-    })});
+    // con.connect(function(err) {
+    //     if (err) throw err;
+    con.query("SELECT * FROM employee", function (err, result, fields) {
+    if (err) throw err;
+    if(checkexistEmail(body,result)) {
+        //add the respose page here
+        res.redirect('/facultyHome');
+    }
+    else{
+        res.redirect('/err');
+    }
+});
     //
   
     })
@@ -61,20 +63,18 @@ driver.post("/labLogin",(req,res)=>{
     console.log(req.body.username)
     var body=req.body;
     
-        con.connect(function(err) {
-            if (err) throw err;
-            con.query("SELECT * FROM lablist", function (err, result, fields) {
-            if (err) throw err;
-            if(checkexist(body,result)) {
-                //add the respose page here
-                res.redirect('/Labhome');
-            }
-                else{
-                    res.redirect('/err');
-                }
         
-        })});
-    })
+    con.query("SELECT * FROM labemployee", function (err, result, fields) {
+        if (err) throw err;
+        if(checkexist(body,result)) {
+            //add the respose page here
+            res.redirect('/Labhome');
+        }
+        else{
+            res.redirect('/err');
+        }
+    });
+})
 
 //set port to 1000
 port = process.env.PORT || 1000
@@ -84,25 +84,28 @@ driver.listen(port,()=>{
 //using to check the user exist
 function checkexist(body,result){
     var passwordFlag=false;
-        for (let index = 0; index < result.length; index++) {
-            const element = result[index];
-       if(body.username == element.id && body.password == element.password){
-          passwordFlag=true;
-       }     
-            }
-            return passwordFlag;
+    for (let index = 0; index < result.length; index++) {
+        const element = result[index];
+        if(body.username == element.labID && body.password == element.password){
+            passwordFlag=true;
         }
+    }
+    return passwordFlag;
+}
 
- function checkexistEmail(body,result){
-         var passwordFlag=false;
-            for (let index = 0; index < result.length; index++) {
-                   const element = result[index];
-              if(body.username == element.email && body.password == element.password){
-                passwordFlag=true;
-           }     
-                   }
-                    return passwordFlag;
-                }
+function checkexistEmail(body,result){
+    var passwordFlag=false;
+    for (let index = 0; index < result.length; index++) {
+        const element = result[index];
+        if(body.email == element.email && body.password == element.passcode){
+            passwordFlag=true;
+            console.log(element.email)
+            console.log(element.passcode)
+            console.log(passwordFlag)
+        }
+    }
+    return passwordFlag;
+}
         
         
 
