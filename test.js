@@ -14,8 +14,8 @@ var con = mysql.createConnection({
     host: "localhost",
     port: 3306,
     user: "root",
-    password: "19981227",
-    database: "employee_id"
+    password: "LZMfall2020cse316",
+    database: "mydb"
 });
 
 //
@@ -42,7 +42,7 @@ driver.post("/employeeLogin",(req,res)=>{
         if (err) throw err;
         if(checkexistEmail(body,result)) {
             //add the respose page here
-            res.redirect('/Labhome');
+            res.redirect('/facultyHome');
         }
             else{
                 res.redirect('/err');
