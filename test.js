@@ -17,14 +17,14 @@ var con = mysql.createConnection({
     password: "LZMfall2020cse316",
     database: "employeecovidtestingdb"
 });
-
+let currentLabID = null;
 //
 driver.get("/TestCollection",(req,res)=>{
-    res.sendFile(__dirname + '/TestCollection.html')
+    writeTestCollection(req, res);
+    // res.sendFile(__dirname + '/TestCollection.html')
 });
 driver.get("/WellTesting",(req,res)=>{
     writeWellTesting(req, res);
-    //res.sendFile(__dirname + '/WellTesting.html')
 });
 driver.get("/employeeLogin",(req,res)=>{
     res.sendFile(__dirname + '/employeeLogin.html')
@@ -64,10 +64,10 @@ driver.post("/labLogin",(req,res)=>{
     console.log(req.body.username)
     var body=req.body;
     
-        
     con.query("SELECT * FROM labemployee", function (err, result, fields) {
         if (err) throw err;
         if(checkexist(body,result)) {
+            currentLabID = body.username;
             //add the respose page here
             res.redirect('/Labhome');
         }
@@ -79,6 +79,18 @@ driver.post("/labLogin",(req,res)=>{
 
 driver.post("/modifyWells", (req, res) => {
     modifyWells(req, res);
+});
+
+driver.post("/addTest", (req, res) => {
+    addEmployeeTest(req, res);
+});
+
+driver.post("/deleteTest", (req, res) => {
+    deleteEmployeeTest(req, res);
+});
+
+driver.post("/", (req, res) => {
+
 });
 
 //set port to 1000
@@ -247,6 +259,94 @@ function clickSelect() {
     
 }
 
+function writeTestCollection(req, res) {
+    res.writeHead(200, { "Content-Type": "text/html" });
+    var html = `<!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Document</title>
+        <style>
+            table {
+                border: 1px solid black;
+            }
+        </style>
+    </head>
+    <body>
+        <div>
+            <form id="addTestForm" action="/addTest" method="POST">
+                <label for="employeeID" >Employee ID</label> 
+                <input name="employeeID" id="employeeID" > <br>
+                <label for="testBarcode">Test Barcode</label> 
+                <input name="testBarcode" id="testBarcode"> <br>
+                <input type="submit" value="Add">
+            </form>
+        </div>
+    
+        <div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Select</th>
+                        <th>Employee ID</th>
+                        <th>Test BarCode</th>
+                    </tr>
+                </thead>
+                <tbody id="result">`;
+    con.query("SELECT * FROM employeetest;", (err, results) => {
+        if (err){
+            console.log("\nEmployeeTest query ERROR\n");
+            throw err;
+        }
+        console.log("\nThere are " + results.length + " employeetest in DB.\n");
+        let index = 0;
+        for (let test of results) {
+            html += `
+            <tr>
+                <td><input type="checkbox" id="test${index}"  class="testCheck"></td>
+                <td>${test.employeeID}</td>
+                <td>${test.testBarcode}</td>
+                <input type="hidden" id="testBarcodeSelect${index}" name="testBarcodeSelect${index}" value="${test.testBarcode}">
+            </tr>
+                `;
+            index++;
+        }
+        res.write(html + `
+        </tbody>
+        </table>
+        <input type="button" value="Delete" onclick="deleteTests()">
+        <form id="deleteTestForm" action="/deleteTest" method="POST">
+        </form>
+    </div>
+    
+</body>
+<script>
+    function deleteTests() {
+        let selectedTests = document.getElementsByClassName("testCheck");
+        let form = document.getElementById("deleteTestForm");
+        if (selectedTests.length == 0)
+            return;
+
+        for(let i = 0; i < selectedTests.length; i++) {
+            let selectedInput = selectedTests[i].parentNode.nextElementSibling.nextElementSibling.nextElementSibling;
+            form.appendChild(selectedInput);
+        }
+        form.submit();
+        // let submit = document.createElement("input");
+        // submit.setAttribute("type", "submit");
+        // form.appendChild(submit);
+        
+    }
+    
+    
+</script>
+</html>
+        `);
+        res.end();
+    });
+}
+
 function insertInto_well(wellbarcode) {
     con.query(`SELECT * FROM well
         WHERE wellbarcode = '${wellbarcode}';`, 
@@ -332,5 +432,51 @@ function updateInto_welltesting(body, times) {
             updateInto_welltesting(body, times-1);
         }
     });
+}
+
+function addEmployeeTest(req, res) {
+    var body = req.body;
+    console.log(body);
+    con.query(`SELECT * FROM employeetest
+        WHERE employeeid = '${body.employeeID}';`, 
+        (err, results) => {
+        console.log("\nSearch is employeetest existed in DB.\n");
+        if (err) {
+            console.log("\nAdding Test Error\n");
+            throw err;
+        }
+        if (results.length == 0) {
+            console.log("\nAdding a new test into DB.\n");
+            con.query(`INSERT INTO employeetest(testbarcode, employeeid, collectiontime, collectedby)
+                VALUES ('${body.testBarcode}', '${body.employeeID}', NULL, '${currentLabID}');`, 
+                (err, results) => {
+
+                if (err) {
+                    console.log("\nAdding Test Error\n");
+                    throw err;
+                }
+            });
+        }
+    });
+    res.redirect('/TestCollection');
+}
+
+function deleteEmployeeTest(req, res) {
+    var body = req.body;
+    console.log(body);
+
+    for (var key in body) {
+        let testBarcode = body[key];
+        con.query(`DELETE FROM employeetest
+                WHERE testbarcode = '${testBarcode}';`, 
+                (err, results) => {
+                if (err) {
+                    console.log("\nDeleting Test Error\n");
+                    throw err;
+                }
+        });
+    }
+    
+    res.redirect('/TestCollection');
 }
   

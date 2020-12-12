@@ -12,23 +12,63 @@
 </head>
 <body>
     <div>
-        <form id="form1">
-            <label for="Employee ID" >Employee ID</label> 
-            <input name="Employee ID" id="Employee ID" > <br>
-            <label for="barcode">Bar code</label> 
-            <input type="barcode" value="" > <br>
-            <input type="button" value="add" onclick="" >
+        <form id="addTestForm" action="/addTest" method="POST">
+            <label for="employeeID" >Employee ID</label> 
+            <input name="employeeID" id="employeeID" > <br>
+            <label for="testBarcode">Test Barcode</label> 
+            <input name="testBarcode" id="testBarcode"> <br>
+            <input type="submit" value="Add">
         </form>
     </div>
-    <table id="Result">
-        <thead>
-            <tr>
-                <th>Employee ID</th>
-                <th>Test BarCode</th>
-            </tr>
-        </thead>
-        </table>
 
-        <input type="button" value="delete" onclick="" >
+    <div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Select</th>
+                    <th>Employee ID</th>
+                    <th>Test BarCode</th>
+                </tr>
+            </thead>
+            <tbody id="result">
+                <tr>
+                    <td><input type="checkbox" id="test0" class="testCheck"></td>
+                    <td>111</td>
+                    <td>222</td>
+                    <input type="hidden" id="testBarcodeSelect0" name="testBarcodeSelect0" value="222">
+                </tr>
+                <tr>
+                    <td><input type="checkbox" id="test1" class="testCheck"></td>
+                    <td>333</td>
+                    <td>444</td>
+                    <input type="hidden" id="testBarcodeSelect1" name="testBarcodeSelect1" value="444">
+                </tr>
+            </tbody>
+        </table>
+        <input type="button" value="Delete" onclick="deleteTests()">
+        <form id="deleteTestForm" action="/deleteTest" method="POST">
+        </form>
+    </div>
+    
 </body>
+<script>
+    function deleteTests() {
+        let selectedTests = document.getElementsByClassName("testCheck");
+        let form = document.getElementById("deleteTestForm");
+        if (selectedTests.length == 0)
+            return;
+
+        for(let i = 0; i < selectedTests.length; i++) {
+            let selectedInput = selectedTests[i].parentNode.nextElementSibling.nextElementSibling.nextElementSibling;
+            form.appendChild(selectedInput);
+        }
+        form.submit();
+        // let submit = document.createElement("input");
+        // submit.setAttribute("type", "submit");
+        // form.appendChild(submit);
+        
+    }
+    
+    
+</script>
 </html>
