@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
+    <!-- <script> scr="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"</script> -->
+    <!-- <script src="jquery-3.5.1.js"></script> -->
     <style>
         border {
             border: 1px solid black;
@@ -12,30 +14,87 @@
 </head>
 <body>
     <div>
-        <form id="form1">
-            <label for="Well barcode" >well barcode</label> 
-            <input name="Well barcode" id="Well barcode" > <br>
-            <label for="poll barcode">Bar code</label> 
-            <input type="poll barcode" value="" > <br>
-            <select name="filed" id="status" >
-                <option value="inProcess">in Process</option>
+        <form id="form1" action="/modifyWells" method="POST">
+            <label for="wellBarcode" >well barcode</label> 
+            <input type="hidden" id="originalWellBarcode" name="originalWellBarcode" value="null">
+            <input name="wellBarcode" id="wellBarcode"> <br>
+            <label for="poolBarcode">pool barcode</label> 
+            <input type="hidden" id="originalPoolBarcode" name="originalPoolBarcode" value="null">
+            <input name="poolBarcode" id="poolBarcode"> <br>
+            <label for="result">result</label> 
+            <select name="result" id="result" >
+                <option value="in process">in process</option>
                 <option value="negative">negative</option>
-                <option value="posstive">posstive</option>
+                <option value="positive">positive</option>
             </select>
-            <input type="button" value="add" onclick="" >
+            <div>
+                <select name="submitOptions" id="wellTestOptions">
+                    <option value="add">Add</option>
+                    <option value="edit">Edit</option>
+                    <option value="delete">Delete</option>
+                </select>
+                <input type="submit" value="Submit">
+            </div>
+            
         </form>
     </div>
     <table id="Result">
         <thead>
             <tr>
+                <th>Select</th>
                 <th>well barcode</th>
                 <th>pool BarCode</th>
                 <th>result</th>
             </tr>
         </thead>
+        <tbody id="resultBody">
+            <tr class="well">
+                <td><input type="checkbox"></td>
+                <td>355</td>
+                <td>522</td>
+                <td>positive</td>
+            </tr>
+            <tr class="well">
+                <td><input type="checkbox"></td>
+                <td>221</td>
+                <td>444</td>
+                <td>negative</td>
+            </tr>
+            
+        </tbody>
         </table>
-
-        <input type="button" value="edit" onclick="" >
-        <input type="button" value="delete" onclick="" >
+        <input type="button" value="Select" onclick="clickSelect()">
 </body>
+
+<script>
+function clickSelect() {
+    var wells = document.getElementsByClassName("well");
+    var selectedWell = null;
+    for (let i = 0; i < wells.length; i++) {
+        if (wells[i].firstElementChild.firstElementChild.checked == true) {
+            selectedWell = wells[i];
+            break;
+        }
+    }
+    if (selectedWell != null) {
+        var wellBarcode = selectedWell.children[1].innerHTML;
+        var poolBarcode = selectedWell.children[2].innerHTML;
+        var status = selectedWell.children[3].innerHTML;
+        wellBarcodeElement = document.getElementById("wellBarcode");
+        wellBarcodeElement.value = wellBarcode;
+        poolBarcodeElement = document.getElementById("poolBarcode");
+        poolBarcodeElement.value = poolBarcode;
+        document.getElementById("originalWellBarcode").value = wellBarcode;
+        document.getElementById("originalPoolBarcode").value = poolBarcode;
+        document.getElementById("result").value = status;
+    }
+}
+</script>
+
+<!-- <script>
+$('input[type="checkbox"]').on('change', function() {
+   $('input[type="checkbox"]').not(this).prop('checked', false);
+});
+</script> -->
+
 </html>
