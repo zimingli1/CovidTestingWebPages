@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<style>
+    border {
+        border: 1px solid black;
+    }
+</style>
+<body>
+    <form id="form1" action=""  method="POST">
+        <div id="div1">
+            <label for="poolBarcode" >pool barcode</label> 
+            <input name="poolBarcode" id="poolBarcode"> <br>
+            <label for="testBarcode">test barcode</label> 
+            <ul>
+                <li>
+                    <input name="testBarcode0" id="testBarcode0">
+                </li>
+                <li>
+                    <input name="testBarcode1" id="testBarcode1">
+                </li>
+                <li>
+                    <input name="testBarcode2" id="testBarcode2">
+                </li>
+                <li>
+                    <input name="testBarcode3" id="testBarcode3">
+                </li>
+                <li>
+                    <input name="testBarcode4" id="testBarcode4">
+                </li>
+            </ul>
+        </div>
+        <select name="submitOptions" id="pollmapingOptions">
+            <option value="add">Add</option>
+            <option value="edit">Edit</option>
+            <option value="delete">Delete</option>
+        </select>
+        <input type="submit" value="Submit">
+    </form>
+    
+    <table id="Result">
+        <thead>
+            <tr>
+                <th>Select</th>
+                <th>pool BarCode</th>
+                <th>test barcode</th>             
+            </tr>
+        </thead>
+        <tbody id="resultBody">
+            <tr class="pool">
+                <td><input type="checkbox"></td>
+                <td>355</td>
+                <td>111, 222, 333</td>
+            </tr>
+            <tr class="pool">
+                <td><input type="checkbox"></td>
+                <td>221</td>
+                <td>444, 221, 232</td>
+            </tr>
+        </tbody>
+    </table>
+    <button onclick="selectTest()">Select</button>
+
+</body>
+
+<script>
+    function selectTest() {
+        var pools = document.getElementsByClassName("pool");
+        var selectedPool = null;
+        for (let i = 0; i < pools.length; i++) {
+            if (pools[i].firstElementChild.firstElementChild.checked == true) {
+                selectedPool = pools[i];
+                break;
+            }
+        }
+        if (selectedPool != null) {
+            var poolBarcode = selectedPool.children[1].innerHTML;
+            var testBarcode = selectedPool.children[2].innerHTML;
+            var testBarcodes = testBarcode.split(", ");
+
+            for(let i = 0; i < testBarcodes.length && i < 5; i++) {
+                let testBarcodeInput = document.getElementById("testBarcode" + i);
+                testBarcodeInput.value = testBarcodes[i];
+            }
+            poolBarcodeElement = document.getElementById("poolBarcode");
+            poolBarcodeElement.value = poolBarcode;
+        }
+    }
+</script>
+</html>

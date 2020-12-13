@@ -26,6 +26,9 @@ driver.get("/TestCollection",(req,res)=>{
 driver.get("/WellTesting",(req,res)=>{
     writeWellTesting(req, res);
 });
+driver.get("/PoolMapping",(req,res)=>{
+    writePoolMapping(req, res);
+});
 driver.get("/employeeLogin",(req,res)=>{
     res.sendFile(__dirname + '/employeeLogin.html')
 });
@@ -79,6 +82,10 @@ driver.post("/labLogin",(req,res)=>{
 
 driver.post("/modifyWells", (req, res) => {
     modifyWells(req, res);
+});
+
+driver.post("/modifyPools", (req, res) => {
+    modifyPools(req, res);
 });
 
 driver.post("/addTest", (req, res) => {
@@ -152,6 +159,31 @@ function modifyWells(req, res){
             break;
     }
     res.redirect('/WellTesting');
+}
+
+function modifyPools(req, res) {
+    let body = req.body;
+    console.log(body);
+    switch(body.submitOptions) {
+        case "add":
+            insertInto_pool(body.poolBarcode);
+            insertInto_poolMapping(body);
+            break;
+        case "edit":
+            updateInto_poolMapping(body);
+            break;
+        case "delete":
+            con.query(`DELETE FROM welltesting
+                WHERE poolbarcode = '${body.originalPoolBarcode}' AND wellbarcode = '${body.originalWellBarcode}';`, 
+                (err, results) => {
+                if (err) {
+                    console.log("\nDeleting Well Error\n");
+                    throw err;
+                }
+            });
+            break;
+    }
+    res.redirect('/PoolMapping');
 }
 
 function writeWellTesting(req, res) {
@@ -347,6 +379,128 @@ function writeTestCollection(req, res) {
     });
 }
 
+function writePoolMapping(req, res) {
+    res.writeHead(200, { "Content-Type": "text/html" });
+    html =`<!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Document</title>
+    </head>
+    <style>
+        border {
+            border: 1px solid black;
+        }
+    </style>
+    <body>
+        <form id="form1" action="/modifyPools"  method="POST">
+            <div id="div1">
+                <label for="poolBarcode" >pool barcode</label> 
+                <input name="poolBarcode" id="poolBarcode"> <br>
+                <label for="testBarcode">test barcode</label> 
+                <ul>
+                <li>
+                    <input name="testBarcode0" id="testBarcode0">
+                </li>
+                <li>
+                    <input name="testBarcode1" id="testBarcode1">
+                </li>
+                <li>
+                    <input name="testBarcode2" id="testBarcode2">
+                </li>
+                <li>
+                    <input name="testBarcode3" id="testBarcode3">
+                </li>
+                <li>
+                    <input name="testBarcode4" id="testBarcode4">
+                </li>
+            </ul>
+        </div>
+        <select name="submitOptions" id="pollmapingOptions">
+            <option value="add">Add</option>
+            <option value="edit">Edit</option>
+            <option value="delete">Delete</option>
+        </select>
+        <input type="submit" value="Submit">
+    </form>
+    
+    <table id="Result">
+        <thead>
+            <tr>
+                <th>Select</th>
+                <th>pool BarCode</th>
+                <th>test barcode</th>             
+            </tr>
+        </thead>
+        <tbody id="resultBody">`;
+    con.query("SELECT DISTINCT poolbarcode FROM poolmap;", (err, poolResults) => {
+        if (err) {
+            console.log("Pool Mapping Loading DB find poolbarcode Error");
+            throw err;
+        }
+        Object.keys(poolResults).forEach(function(key) {
+            let poolbarcode = poolResults[key].poolbarcode;
+            console.log("\n" + poolbarcode +"\n");
+            html += `
+            <tr class="pool">
+                <td><input type="checkbox"></td>
+                <td>${poolbarcode}</td>
+                <td>
+            `;
+            con.query(`SELECT testbarcode FROM poolmap
+                WHERE poolbarcode = '${poolbarcode}';`, (err, testResults) => {
+                if (err) {
+                    console.log("Pool Mapping Loading DB find testbarcode Error");
+                    throw err;
+                }
+                Object.keys(testResults).forEach(function(key) {
+                    let testbarcode = testResults[key].testbarcode;
+                    console.log("\n" + testbarcode);
+                    html += `${testbarcode}, `;
+                });
+                html = html.substring(0, html.length-2);
+                html += `</td>
+                </tr>`;
+            });
+        });
+            
+        res.write(html + `</tbody>
+        </table>
+        <button onclick="selectTest()">Select</button>
+    
+    </body>
+    
+    <script>
+        function selectTest() {
+            var pools = document.getElementsByClassName("pool");
+            var selectedPool = null;
+            for (let i = 0; i < pools.length; i++) {
+                if (pools[i].firstElementChild.firstElementChild.checked == true) {
+                    selectedPool = pools[i];
+                    break;
+                }
+            }
+            if (selectedPool != null) {
+                var poolBarcode = selectedPool.children[1].innerHTML;
+                var testBarcode = selectedPool.children[2].innerHTML;
+                var testBarcodes = testBarcode.split(", ");
+    
+                for(let i = 0; i < testBarcodes.length && i < 5; i++) {
+                    let testBarcodeInput = document.getElementById("testBarcode" + i);
+                    testBarcodeInput.value = testBarcodes[i];
+                }
+                poolBarcodeElement = document.getElementById("poolBarcode");
+                poolBarcodeElement.value = poolBarcode;
+            }
+        }
+    </script>
+    </html>`);
+        res.end();
+    });
+
+}
+
 function insertInto_well(wellbarcode) {
     con.query(`SELECT * FROM well
         WHERE wellbarcode = '${wellbarcode}';`, 
@@ -419,6 +573,32 @@ function insertInto_welltesting(body) {
     });
 }
 
+function insertInto_poolMapping(body) {
+    for (let i = 0; i < 5; i++) {
+        let newTestBarcode = body["testBarcode" + i];
+        if (newTestBarcode == null || newTestBarcode == "")
+            break;
+        con.query(`SELECT testbarcode FROM employeetest WHERE testbarcode = '${newTestBarcode}';`, (err, results) => {
+            if (err) {
+                console.log("\nError founding testbarcode "+ newTestBarcode)
+            }
+            if (results.length == 0) {
+                console.log("\nNot Found TestBarcode " + newTestBarcode);
+                return;
+            }
+            
+            con.query(`INSERT INTO poolmap(testbarcode, poolbarcode) VALUES(${newTestBarcode},${body.poolBarcode});`, (err, insertResults) => {
+                if (err) {
+                    console.log("\nError Inserting Poolmap");
+                    throw err;
+                }
+
+            });
+        });
+    }
+
+}
+
 function updateInto_welltesting(body, times) {
     if (times == 0)
         return;
@@ -434,11 +614,15 @@ function updateInto_welltesting(body, times) {
     });
 }
 
+function updateInto_poolMapping(body) {
+    
+}
+
 function addEmployeeTest(req, res) {
     var body = req.body;
     console.log(body);
     con.query(`SELECT * FROM employeetest
-        WHERE employeeid = '${body.employeeID}';`, 
+        WHERE testbarcode = '${body.testBarcode}';`, 
         (err, results) => {
         console.log("\nSearch is employeetest existed in DB.\n");
         if (err) {
